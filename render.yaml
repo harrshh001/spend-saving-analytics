@@ -1,3 +1,9 @@
+databases:
+  - name: spend-analytics-db
+    databaseName: spend_db
+    user: spend_user
+    plan: free
+
 services:
   # Backend API service
   - type: web
@@ -12,7 +18,9 @@ services:
       - key: NODE_ENV
         value: production
       - key: DATABASE_URL
-        value: file:./dev.db
+        fromDatabase:
+          name: spend-analytics-db
+          property: connectionString
       - key: JWT_SECRET
         generateValue: true
       - key: PORT

@@ -32,24 +32,32 @@ const csvData = [
 async function main() {
   console.log('🌱 Starting seed...');
 
-  // Clear existing data
-  await prisma.spendRecord.deleteMany();
-  await prisma.user.deleteMany();
-
-  // Create test user
-  const password = 'Test@1234';
-  const hashedPassword = await bcrypt.hash(password, 12);
-  const user = await prisma.user.create({
-    data: {
-      name: 'Intern User',
-      email: 'intern@spendtracker.com',
-      password: hashedPassword,
-    },
+  // Ensure test user exists idempotently
+  const existingUser = await prisma.user.findUnique({
+    where: { email: 'intern@spendtracker.com' },
   });
 
-  console.log('✅ Test user created');
-  console.log('📧 Email:    intern@spendtracker.com');
-  console.log('🔑 Password: Test@1234');
+  if (!existingUser) {
+    const password = 'Test@1234';
+    const hashedPassword = await bcrypt.hash(password, 12);
+    await prisma.user.create({
+      data: {
+        name: 'Intern User',
+        email: 'intern@spendtracker.com',
+        password: hashedPassword,
+      },
+    });
+    console.log('✅ Test user created (intern@spendtracker.com / Test@1234)');
+  } else {
+    console.log('ℹ️ Test user already exists.');
+  }
+
+  // Idempotent spend records check: if database already has records, skip to avoid overwriting user edits
+  const existingCount = await prisma.spendRecord.count();
+  if (existingCount > 0) {
+    console.log(`ℹ️ Database already contains ${existingCount} spend records. Skipping seed.`);
+    return;
+  }
 
   // Try to parse xlsx file
   let records = csvData;
