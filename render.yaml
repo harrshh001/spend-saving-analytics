@@ -1,3 +1,5 @@
+version: "1"
+
 databases:
   - name: spend-analytics-db
     databaseName: spend_db
