@@ -12,14 +12,10 @@ services:
       - key: NODE_ENV
         value: production
       - key: DATABASE_URL
-        value: file:./prisma/prod.db
+        value: file:./dev.db
       - key: JWT_SECRET
         generateValue: true
       - key: PORT
         value: 4000
       - key: CLIENT_ORIGIN
         sync: false
-    disk:
-      name: spend-db
-      mountPath: /opt/render/project/src/server/prisma
-      sizeGB: 1
