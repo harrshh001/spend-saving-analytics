@@ -1,0 +1,25 @@
+services:
+  # Backend API service
+  - type: web
+    name: spend-analytics-api
+    env: node
+    region: singapore
+    plan: free
+    rootDir: server
+    buildCommand: npm install && npx prisma generate && npx prisma db push && npm run seed && npm run build
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        value: file:./prisma/prod.db
+      - key: JWT_SECRET
+        generateValue: true
+      - key: PORT
+        value: 4000
+      - key: CLIENT_ORIGIN
+        sync: false
+    disk:
+      name: spend-db
+      mountPath: /opt/render/project/src/server/prisma
+      sizeGB: 1
