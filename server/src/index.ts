@@ -15,8 +15,16 @@ const CLIENT_ORIGIN = process.env.CLIENT_ORIGIN || 'http://localhost:5173';
 
 // Middleware
 app.use(helmet());
+
+const allowedOrigins = [CLIENT_ORIGIN, 'http://localhost:5173', 'http://localhost:3000'];
 app.use(cors({
-  origin: [CLIENT_ORIGIN, 'http://localhost:5173', 'http://localhost:3000'],
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin) || /\.vercel\.app$/.test(origin)) {
+      callback(null, true);
+    } else {
+      callback(null, true);
+    }
+  },
   credentials: true,
 }));
 app.use(morgan('dev'));
