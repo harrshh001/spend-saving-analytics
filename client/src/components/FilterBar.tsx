@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import { Calendar, X, ChevronDown, RotateCcw, Filter } from 'lucide-react';
@@ -15,14 +15,26 @@ interface MultiSelectProps {
 
 function MultiSelect({ label, options, selected, onChange }: MultiSelectProps) {
   const [open, setOpen] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   const toggle = (val: string) => {
     if (selected.includes(val)) onChange(selected.filter((s) => s !== val));
     else onChange([...selected, val]);
   };
 
+  useEffect(() => {
+    if (!open) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [open]);
+
   return (
-    <div className="relative">
+    <div ref={containerRef} className={`relative ${open ? 'z-30' : ''}`}>
       <button
         type="button"
         onClick={() => setOpen(!open)}
@@ -36,25 +48,22 @@ function MultiSelect({ label, options, selected, onChange }: MultiSelectProps) {
       </button>
 
       {open && (
-        <>
-          <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
-          <div className="absolute top-full mt-1 left-0 z-50 bg-dark-800 border border-dark-600 rounded-xl shadow-2xl py-1 min-w-[180px] max-h-56 overflow-y-auto animate-fade-in">
-            {options.map((opt) => (
-              <label key={opt} className="flex items-center gap-2.5 px-3 py-2 hover:bg-dark-700/60 cursor-pointer transition-colors">
-                <input
-                  type="checkbox"
-                  checked={selected.includes(opt)}
-                  onChange={() => toggle(opt)}
-                  className="w-3.5 h-3.5 rounded border-dark-500 accent-primary-500"
-                />
-                <span className="text-sm text-dark-200 truncate">{opt}</span>
-              </label>
-            ))}
-            {options.length === 0 && (
-              <p className="px-3 py-2 text-sm text-dark-500">No options</p>
-            )}
-          </div>
-        </>
+        <div className="absolute top-full mt-1 left-0 z-50 bg-dark-800 border border-dark-600 rounded-xl shadow-2xl py-1 min-w-[180px] max-h-56 overflow-y-auto animate-fade-in">
+          {options.map((opt) => (
+            <label key={opt} className="flex items-center gap-2.5 px-3 py-2 hover:bg-dark-700/60 cursor-pointer transition-colors">
+              <input
+                type="checkbox"
+                checked={selected.includes(opt)}
+                onChange={() => toggle(opt)}
+                className="w-3.5 h-3.5 rounded border-dark-500 accent-primary-500"
+              />
+              <span className="text-sm text-dark-200 truncate">{opt}</span>
+            </label>
+          ))}
+          {options.length === 0 && (
+            <p className="px-3 py-2 text-sm text-dark-500">No options</p>
+          )}
+        </div>
       )}
     </div>
   );
@@ -68,7 +77,7 @@ export default function FilterBar() {
   const dateTo = filters.dateTo ? parseISO(filters.dateTo) : null;
 
   return (
-    <div className="glass-card p-4">
+    <div className="glass-card p-4 relative z-20">
       <div className="flex items-center gap-2 mb-3">
         <Filter className="w-4 h-4 text-primary-400" />
         <span className="text-sm font-semibold text-dark-200">Filters</span>
